@@ -69,6 +69,13 @@ const connectMongoDb = async () => {
             const result = await bookingDb.insertOne(document);
             res.send(result)
         })
+
+        app.get('/users/admin/:email', async (req, res) => {
+            const email = req.params.email;
+            const query = {email: email};
+            const result = await userDb.findOne(query);
+            res.send({isAdmin: result.role === 'admin'})
+        })
         app.get('/category', async (req, res) => {
             const result = await oldCarCategory.find({}).toArray();
             res.send(result);
