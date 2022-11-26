@@ -84,6 +84,13 @@ const connectMongoDb = async () => {
             res.send({isSeller: result.role === 'seller'})
 
         })
+
+        app.get('/users/buyer/:email', async (req, res) => {
+            const email = req.params.email;
+            const query = {email: email};
+            const result = await userDb.findOne(query);
+            res.send({isBuyer: result.role === 'buyer'})
+        })
         app.get('/category', async (req, res) => {
             const result = await oldCarCategory.find({}).toArray();
             res.send(result);
