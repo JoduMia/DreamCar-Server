@@ -48,6 +48,13 @@ const connectMongoDb = async () => {
             res.send(result);
         })
 
+        app.get('/dashboard/checkout/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = {_id: ObjectId(id)}
+            const order = await bookingDb.findOne(query);
+            res.send(order);
+        })
+
         app.post("/create-payment-intent", async (req, res) => {
             try{
                 const { price } = req.body;
