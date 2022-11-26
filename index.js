@@ -24,7 +24,12 @@ const connectMongoDb = async () => {
             const result = await userDb.findOne(query);
             res.send({isAdmin: result.role === 'admin'})
         })
-
+        app.post('/bookings', async (req, res) => {
+            const doc = req.body;
+            const document = {...doc, status: 'unpaid'}
+            const result = await bookingDb.insertOne(document);
+            res.send(result)
+        })
         app.post('/bookings', async (req, res) => {
             const doc = req.body;
             const document = {...doc, status: 'unpaid'}
