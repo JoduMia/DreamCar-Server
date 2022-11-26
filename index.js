@@ -48,6 +48,29 @@ const connectMongoDb = async () => {
             res.send(result);
         })
 
+        app.post("/create-payment-intent", async (req, res) => {
+            try{
+                const { price } = req.body;
+            const total = price * 100;
+            console.log('hiddddddd');
+
+            const paymentIntent = await stripe.paymentIntents.create({
+              amount: total,
+              currency: "usd",
+              "payment_method_types": [
+                "card"
+              ]
+            });
+
+            res.send({
+              clientSecret: paymentIntent.client_secret,
+            });
+            }catch(error){
+                console.log(error.message);
+                res.send(error)
+            }
+          });
+
     }finally{}
 }
 connectMongoDb().catch(err => console.log(err.message))
