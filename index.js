@@ -15,6 +15,21 @@ const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology:
 
 const connectMongoDb = async () => {
     try {
+        const oldCarCategory = client.db('oldCarBebsha').collection('category');
+        const oldCarProducts = client.db('oldCarBebsha').collection('products');
+        const userDb = client.db('oldCarBebsha').collection('users');
+
+
+        app.post('/bookings', async (req, res) => {
+            const doc = req.body;
+            const document = {...doc, status: 'unpaid'}
+            const result = await bookingDb.insertOne(document);
+            res.send(result)
+        })
+        app.get('/category', async (req, res) => {
+            const result = await oldCarCategory.find({}).toArray();
+            res.send(result);
+        })
         app.get('/category/:id',async (req, res) => {
             const id = req.params.id;
             console.log(id);
