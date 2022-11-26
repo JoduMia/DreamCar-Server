@@ -28,7 +28,6 @@ const jsonVerification = async (req, res, next) => {
 };
 
 
-
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@cluster0.cxn7suc.mongodb.net/?retryWrites=true&w=majority`;
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1 });
 
@@ -99,8 +98,6 @@ const connectMongoDb = async () => {
         })
 
 
-        //9
-
         app.get('/dashboard/checkout/:id', async (req, res) => {
             const id = req.params.id;
             const query = {_id: ObjectId(id)}
@@ -108,7 +105,6 @@ const connectMongoDb = async () => {
             res.send(order);
         })
 
-        //.10
         app.post("/create-payment-intent", async (req, res) => {
             try{
                 const { price } = req.body;
@@ -132,7 +128,6 @@ const connectMongoDb = async () => {
             }
           });
 
-          //11.
 
           app.post('/payment', async (req, res) => {
             const paymentInfo = req.body;
@@ -148,24 +143,17 @@ const connectMongoDb = async () => {
           })
 
 
-          //12.
-
           app.get('/onlycategory', async (req, res) => {
             const result = await oldCarCategory.find().project({category: 1}).toArray();
             res.send(result);
           })
 
-
-          //.13
           app.post('/addproduct', async (req, res) => {
             const addproduct = req.body;
             const result = await oldCarProducts.insertOne(addproduct);
             console.log(result);
             res.send(result)
           })
-
-
-
 
 
         app.get('/users', async (req, res) => {
@@ -205,20 +193,6 @@ const connectMongoDb = async () => {
     }finally{}
 }
 connectMongoDb().catch(err => console.log(err.message))
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 app.get('/', (req, res) => {
     res.send('server is running')
