@@ -8,10 +8,9 @@ app.use(cors());
 app.use(express.json());
 const port = process.env.PORT || 5000;
 
+const stripe = require("stripe")(process.env.STRIPE_KEY);
 
-const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@cluster0.cxn7suc.mongodb.net/?retryWrites=true&w=majority`;
-const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1 });
-
+// jsonVerification middlewares
 const jsonVerification = async (req, res, next) => {
     const authHeader = req.headers.authorization;
     if(!authHeader) {
@@ -29,6 +28,10 @@ const jsonVerification = async (req, res, next) => {
 };
 
 
+
+const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@cluster0.cxn7suc.mongodb.net/?retryWrites=true&w=majority`;
+const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1 });
+
 const connectMongoDb = async () => {
     try {
         const oldCarCategory = client.db('oldCarBebsha').collection('category');
@@ -36,19 +39,6 @@ const connectMongoDb = async () => {
         const userDb = client.db('oldCarBebsha').collection('users');
         const bookingDb = client.db('oldCarBebsha').collection('bookings');
         const paymentDb = client.db('oldCarBebsha').collection('payments');
-
-        app.get('/users/admin/:email', async (req, res) => {
-            const email = req.params.email;
-            const query = {email: email};
-            const result = await userDb.findOne(query);
-            res.send({isAdmin: result.role === 'admin'})
-        })
-        app.post('/bookings', async (req, res) => {
-            const doc = req.body;
-            const document = {...doc, status: 'unpaid'}
-            const result = await bookingDb.insertOne(document);
-            res.send(result)
-        })
 
         app.put('/users', async (req, res) => {
             const seller = req.query.seller;
@@ -63,12 +53,7 @@ const connectMongoDb = async () => {
             res.send(data)
 
         })
-        app.post('/bookings', async (req, res) => {
-            const doc = req.body;
-            const document = {...doc, status: 'unpaid'}
-            const result = await bookingDb.insertOne(document);
-            res.send(result)
-        })
+
 
         app.get('/users/admin/:email', async (req, res) => {
             const email = req.params.email;
@@ -91,22 +76,30 @@ const connectMongoDb = async () => {
             const result = await userDb.findOne(query);
             res.send({isBuyer: result.role === 'buyer'})
         })
-        app.get('/category', async (req, res) => {
-            const result = await oldCarCategory.find({}).toArray();
-            res.send(result);
+
+        app.get('/mybookings', async (req, res) => {
+            const email = req.query.email;
+            const bookings = await bookingDb.find({email:email}).toArray();
+            res.send(bookings)
         })
+
+
+
+        app.post('/bookings', async (req, res) => {
+            const doc = req.body;
+            const document = {...doc, status: 'unpaid'}
+            const result = await bookingDb.insertOne(document);
+            res.send(result)
+        })
+
 
         app.get('/bookings',jsonVerification, async (req, res) => {
             const bookings = await bookingDb.find({}).toArray();
             res.send(bookings)
         })
-        app.get('/category/:id',async (req, res) => {
-            const id = req.params.id;
-            console.log(id);
-            const query = {category: id};
-            const result = await oldCarProducts.find(query).toArray();
-            res.send(result);
-        })
+
+
+        //9
 
         app.get('/dashboard/checkout/:id', async (req, res) => {
             const id = req.params.id;
@@ -115,6 +108,7 @@ const connectMongoDb = async () => {
             res.send(order);
         })
 
+        //.10
         app.post("/create-payment-intent", async (req, res) => {
             try{
                 const { price } = req.body;
@@ -138,9 +132,92 @@ const connectMongoDb = async () => {
             }
           });
 
+          //11.
+
+          app.post('/payment', async (req, res) => {
+            const paymentInfo = req.body;
+            const {id} = paymentInfo;
+            const query = {_id: ObjectId(id)};
+            const updateDoc = {$set: {status: 'paid'}}
+            const updateStatus = await bookingDb.updateOne(query, updateDoc, {upsert:true});
+            console.log(updateStatus);
+            console.log(paymentInfo);
+            const result = await paymentDb.insertOne(paymentInfo);
+            res.send(result);
+            console.log(result);
+          })
+
+
+          //12.
+
+          app.get('/onlycategory', async (req, res) => {
+            const result = await oldCarCategory.find().project({category: 1}).toArray();
+            res.send(result);
+          })
+
+
+          //.13
+          app.post('/addproduct', async (req, res) => {
+            const addproduct = req.body;
+            const result = await oldCarProducts.insertOne(addproduct);
+            console.log(result);
+            res.send(result)
+          })
+
+
+
+
+
+        app.get('/users', async (req, res) => {
+            const users = await userDb.find({}).toArray();
+            res.send(users)
+        })
+
+        app.post('/users', async (req, res) => {
+            const user = req.body;
+            const result = await userDb.insertOne(user);
+            res.send(result);
+        })
+
+        app.get('/jwt', async (req, res) => {
+            const email = req.query.email;
+            const user = await userDb.findOne({email: email});
+            if(user) {
+                const token = jsonToken.sign({email}, process.env.ACCESS_TOKEN, {expiresIn: '1h'});
+                return res.send({token : token});
+            }
+            res.status(403).send(`Unauthorized access`)
+        })
+
+        app.get('/category', async (req, res) => {
+            const result = await oldCarCategory.find({}).toArray();
+            res.send(result);
+        })
+
+        app.get('/category/:id',async (req, res) => {
+            const id = req.params.id;
+            console.log(id);
+            const query = {category: id};
+            const result = await oldCarProducts.find(query).toArray();
+            res.send(result);
+        })
+
     }finally{}
 }
 connectMongoDb().catch(err => console.log(err.message))
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 app.get('/', (req, res) => {
