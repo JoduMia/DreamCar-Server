@@ -49,6 +49,20 @@ const connectMongoDb = async () => {
             const result = await bookingDb.insertOne(document);
             res.send(result)
         })
+
+        app.put('/users', async (req, res) => {
+            const seller = req.query.seller;
+            const email = req.query.email;
+            const updateDoc = {
+                $set: {
+                    user_type: seller
+                }
+            }
+            const result = await userDb.updateOne({email: email}, updateDoc, {upsert: true});
+            const data = await userDb.findOne({email:email});
+            res.send(data)
+
+        })
         app.post('/bookings', async (req, res) => {
             const doc = req.body;
             const document = {...doc, status: 'unpaid'}
