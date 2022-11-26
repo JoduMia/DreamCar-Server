@@ -95,6 +95,11 @@ const connectMongoDb = async () => {
             const result = await oldCarCategory.find({}).toArray();
             res.send(result);
         })
+
+        app.get('/bookings',jsonVerification, async (req, res) => {
+            const bookings = await bookingDb.find({}).toArray();
+            res.send(bookings)
+        })
         app.get('/category/:id',async (req, res) => {
             const id = req.params.id;
             console.log(id);
