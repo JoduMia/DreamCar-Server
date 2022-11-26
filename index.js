@@ -12,6 +12,22 @@ const port = process.env.PORT || 5000;
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@cluster0.cxn7suc.mongodb.net/?retryWrites=true&w=majority`;
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1 });
 
+const jsonVerification = async (req, res, next) => {
+    const authHeader = req.headers.authorization;
+    if(!authHeader) {
+        res.status(401).send('Unauthorized Access without header');
+    }
+    const token = authHeader.split(' ')[1];
+    jsonToken.verify(token, process.env.ACCESS_TOKEN, (err,decoded) => {
+        if(err) {
+            console.log(err);
+            return res.status(403).send({message: 'Forbidden access'});
+        }
+        req.decoded = decoded;
+        next();
+    })
+};
+
 
 const connectMongoDb = async () => {
     try {
