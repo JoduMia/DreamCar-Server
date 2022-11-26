@@ -34,6 +34,9 @@ const connectMongoDb = async () => {
         const oldCarCategory = client.db('oldCarBebsha').collection('category');
         const oldCarProducts = client.db('oldCarBebsha').collection('products');
         const userDb = client.db('oldCarBebsha').collection('users');
+        const bookingDb = client.db('oldCarBebsha').collection('bookings');
+        const paymentDb = client.db('oldCarBebsha').collection('payments');
+
         app.get('/users/admin/:email', async (req, res) => {
             const email = req.params.email;
             const query = {email: email};
