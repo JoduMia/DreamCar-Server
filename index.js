@@ -12,9 +12,10 @@ const stripe = require("stripe")(process.env.STRIPE_KEY);
 
 // jsonVerification middlewares
 const jsonVerification = async (req, res, next) => {
-    const authHeader = req.headers.authorization;
+    try{
+        const authHeader = req.headers.authorization;
     if(!authHeader) {
-        res.status(401).send('Unauthorized Access without header');
+        return res.status(401).send('Unauthorized Access without header');
     }
     const token = authHeader.split(' ')[1];
     jsonToken.verify(token, process.env.ACCESS_TOKEN, (err,decoded) => {
@@ -25,6 +26,9 @@ const jsonVerification = async (req, res, next) => {
         req.decoded = decoded;
         next();
     })
+    } catch {
+        res.status(403).send({message: "Error Happened"});
+    }
 };
 
 
@@ -131,15 +135,17 @@ const connectMongoDb = async () => {
 
           app.post('/payment', async (req, res) => {
             const paymentInfo = req.body;
-            const {id} = paymentInfo;
+            const {id,matchby} = paymentInfo;
             const query = {_id: ObjectId(id)};
             const updateDoc = {$set: {status: 'paid'}}
             const updateStatus = await bookingDb.updateOne(query, updateDoc, {upsert:true});
-            console.log(updateStatus);
-            console.log(paymentInfo);
             const result = await paymentDb.insertOne(paymentInfo);
+
+            const queryforAd = {_id: ObjectId(matchby)};
+            const productSellStatusUpdateDoc = {$set: {sell_status: 'sold'}};
+            const updateSellstatus = await oldCarProducts.updateOne(queryforAd,productSellStatusUpdateDoc,{upsert: true});
+
             res.send(result);
-            console.log(result);
           })
 
 
@@ -185,7 +191,15 @@ const connectMongoDb = async () => {
         app.get('/category/:id',async (req, res) => {
             const id = req.params.id;
             console.log(id);
-            const query = {category: id};
+            const query = {category: id, sell_status: 'available'};
+            const result = await oldCarProducts.find(query).toArray();
+            res.send(result);
+        })
+
+        //advertise.....
+
+        app.get('/advetise', async (req, res) => {
+            const query = {sell_status: 'available', ad:true}
             const result = await oldCarProducts.find(query).toArray();
             res.send(result);
         })
