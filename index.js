@@ -209,8 +209,23 @@ const connectMongoDb = async () => {
         app.get('/myproducts', async (req, res) => {
             const email = req.query.email;
             const myproduct = await oldCarProducts.find({seller_email: email}).toArray();
-            console.log(myproduct);
             res.send(myproduct);
+        })
+
+        app.put('/addtoads/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = {_id: ObjectId(id)};
+            const updateDoc = {$set: {ad:true}};
+            const result = await oldCarProducts.updateOne(query, updateDoc, {upsert: true});
+            console.log(result);
+            res.send(result);
+        })
+
+        app.delete('/deleteproduct/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = {_id: ObjectId(id)};
+            const result = await oldCarProducts.deleteOne(query);
+            console.log(result);
         })
 
     }finally{}
