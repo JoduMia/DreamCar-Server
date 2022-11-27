@@ -204,6 +204,15 @@ const connectMongoDb = async () => {
             res.send(result);
         })
 
+        //myproduct
+
+        app.get('/myproducts', async (req, res) => {
+            const email = req.query.email;
+            const myproduct = await oldCarProducts.find({seller_email: email}).toArray();
+            console.log(myproduct);
+            res.send(myproduct);
+        })
+
     }finally{}
 }
 connectMongoDb().catch(err => console.log(err.message))
