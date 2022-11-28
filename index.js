@@ -274,6 +274,14 @@ const connectMongoDb = async () => {
             console.log(result);
         })
 
+        app.get('/mybuyers/:id', async (req, res) => {
+            const email = req.params.id;
+            const query = {seller_email: email};
+            const result = await bookingDb.find(query).toArray();
+            res.send(result);
+            console.log(result);
+        })
+
     }finally{}
 }
 connectMongoDb().catch(err => console.log(err.message))
