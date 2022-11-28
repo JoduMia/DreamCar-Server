@@ -232,7 +232,7 @@ const connectMongoDb = async () => {
 
         //myproduct
 
-        app.get('/myproducts', async (req, res) => {
+        app.get('/myproducts',jsonVerification,emailChcek, async (req, res) => {
             const email = req.query.email;
             const myproduct = await oldCarProducts.find({ seller_email: email }).toArray();
             res.send(myproduct);
