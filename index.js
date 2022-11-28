@@ -177,8 +177,14 @@ const connectMongoDb = async () => {
 
         app.post('/users', async (req, res) => {
             const user = req.body;
-            const result = await userDb.insertOne(user);
-            res.send(result);
+            const {email} = user;
+            const checking = await userDb.findOne({email:email});
+            if(!checking){
+                const result = await userDb.insertOne(user);
+                return res.send(result);
+            } else {
+                res.send({status: "failed", message: "already indatabase"})
+            }
         })
 
         app.get('/jwt', async (req, res) => {
