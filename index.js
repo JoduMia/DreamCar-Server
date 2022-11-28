@@ -156,7 +156,14 @@ const connectMongoDb = async () => {
 
           app.post('/addproduct', async (req, res) => {
             const addproduct = req.body;
-            const result = await oldCarProducts.insertOne(addproduct);
+            const {seller_email} = req.body;
+            const user = await userDb.findOne({email:seller_email});
+            let isValid_seller = false;
+            if(user.isVerified){
+                isValid_seller = true;
+            }
+            const addproductswithVerifyStatus = {...addproduct, isValid_seller}
+            const result = await oldCarProducts.insertOne(addproductswithVerifyStatus);
             console.log(result);
             res.send(result)
           })
