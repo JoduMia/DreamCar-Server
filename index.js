@@ -241,6 +241,22 @@ const connectMongoDb = async () => {
             res.send(result)
         })
 
+        app.put('/verifyuser/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = {_id: ObjectId(id)};
+            const updateDoc = {$set: {isVerified:true}};
+            const result = await userDb.updateOne(query, updateDoc, {upsert: true});
+            console.log(result);
+            res.send(result);
+        })
+
+        app.delete('/deleteseller/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = {_id: ObjectId(id)};
+            const result = await userDb.deleteOne(query);
+            console.log(result);
+        })
+
     }finally{}
 }
 connectMongoDb().catch(err => console.log(err.message))
