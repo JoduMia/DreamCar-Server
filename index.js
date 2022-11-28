@@ -241,6 +241,11 @@ const connectMongoDb = async () => {
             res.send(result)
         })
 
+        app.get('/buyers', async (req, res) => {
+            const result = await userDb.find({role: 'buyer'}).toArray();
+            res.send(result)
+        })
+
         app.put('/verifyuser/:id', async (req, res) => {
             const id = req.params.id;
             const email = req.query.email;
@@ -256,6 +261,13 @@ const connectMongoDb = async () => {
         })
 
         app.delete('/deleteseller/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = {_id: ObjectId(id)};
+            const result = await userDb.deleteOne(query);
+            console.log(result);
+        })
+
+        app.delete('/deletebuyer/:id', async (req, res) => {
             const id = req.params.id;
             const query = {_id: ObjectId(id)};
             const result = await userDb.deleteOne(query);
