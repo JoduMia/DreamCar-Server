@@ -243,10 +243,15 @@ const connectMongoDb = async () => {
 
         app.put('/verifyuser/:id', async (req, res) => {
             const id = req.params.id;
+            const email = req.query.email;
             const query = {_id: ObjectId(id)};
             const updateDoc = {$set: {isVerified:true}};
             const result = await userDb.updateOne(query, updateDoc, {upsert: true});
-            console.log(result);
+
+            const querytoproduct = {seller_email: email};
+            const updatePorductDoc = {$set: {isValid_seller:true}};
+            const updateProductvalidSeller = await oldCarProducts.updateMany(querytoproduct, updatePorductDoc, {upsert: true});
+            console.log(updateProductvalidSeller);
             res.send(result);
         })
 
