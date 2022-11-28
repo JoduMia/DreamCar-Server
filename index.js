@@ -235,6 +235,12 @@ const connectMongoDb = async () => {
             console.log(result);
         })
 
+        //get the sellers...
+        app.get('/sellers', async (req, res) => {
+            const result = await userDb.find({role: 'seller'}).toArray();
+            res.send(result)
+        })
+
     }finally{}
 }
 connectMongoDb().catch(err => console.log(err.message))
