@@ -31,6 +31,17 @@ const jsonVerification = async (req, res, next) => {
     }
 };
 
+//middleware emailverification
+
+const emailChcek = (req, res, next) => {
+    const email = req.query.email;
+    const decodedEmail = req.decoded.email;
+    if (email !== decodedEmail) {
+        return res.status(403).send('Unauthorized access with unknown email');
+    }
+    next();
+};
+
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@cluster0.cxn7suc.mongodb.net/?retryWrites=true&w=majority`;
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1 });
@@ -81,7 +92,7 @@ const connectMongoDb = async () => {
             res.send({ isBuyer: result.role === 'buyer' })
         })
 
-        app.get('/mybookings', async (req, res) => {
+        app.get('/mybookings',jsonVerification,emailChcek, async (req, res) => {
             const email = req.query.email;
             const bookings = await bookingDb.find({ email: email }).toArray();
             res.send(bookings)
@@ -97,7 +108,7 @@ const connectMongoDb = async () => {
         })
 
 
-        app.get('/bookings', jsonVerification, async (req, res) => {
+        app.get('/bookings', jsonVerification, emailChcek, async (req, res) => {
             const bookings = await bookingDb.find({}).toArray();
             res.send(bookings)
         })
@@ -177,13 +188,13 @@ const connectMongoDb = async () => {
 
         app.post('/users', async (req, res) => {
             const user = req.body;
-            const {email} = user;
-            const checking = await userDb.findOne({email:email});
-            if(!checking){
+            const { email } = user;
+            const checking = await userDb.findOne({ email: email });
+            if (!checking) {
                 const result = await userDb.insertOne(user);
                 return res.send(result);
             } else {
-                res.send({status: "failed", message: "already indatabase"})
+                res.send({ status: "failed", message: "already indatabase" })
             }
         })
 
@@ -301,15 +312,15 @@ const connectMongoDb = async () => {
                 const wishlist = { ...product, buyer_email: email, matchby: _id };
                 const addToWishList = await wihslistDb.insertOne(wishlist);
                 console.log(addToWishList);
-                res.send({status:"done"})
+                res.send({ status: "done" })
             }
-            res.send({status: 'already added'})
+            res.send({ status: 'already added' })
 
         })
 
         app.get('/wishlist', async (req, res) => {
             const email = req.query.email;
-            const result = await wihslistDb.find({buyer_email:email}).toArray();
+            const result = await wihslistDb.find({ buyer_email: email }).toArray();
             res.send(result);
         })
 
